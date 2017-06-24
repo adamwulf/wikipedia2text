@@ -9,20 +9,30 @@ do
      n=$(($n + 1));
    fi
 
-   if [[ $name != *"/Wikipedia"* ]]; then
+   if [[ $name != *"/Wikipedia"* && $name != *"Template%3A"* ]]; then
         # read in the content
      	plain_content=$(cat header $name footer);
 
+	echo $name;
+	echo $plain_content;
+	echo "-------------------------------"
+
 	# remove template links
-        plain_content=$(echo $plain_content | sed -r -e 's|<a [^>]*>Template:[^>]*</a>||g');
+        plain_content=$(sed -r -e 's|<a [^>]*>Template:[^>]*</a>||g' <<< $plain_content);
 
 	# remove <ref> tags
-	plain_content=$(echo $plain_content | sed -r -e 's|&lt;ref(.*)&lt;/ref&gt;||g');
+	plain_content=$(sed -r -e 's|&lt;ref[^&]*&gt;[^&]*&lt;/ref&gt;||g' <<< $plain_content);
+
+
+        echo $plain_content;
+        echo "-------------------------------"
+
 
 	# get only the content of <p> tags
-        plain_content=$(echo $plain_content | xmllint --xpath "//p[(count(a) > 0 and count(*) > count(a)) or (count(a) = 0) or (count(*) = 0)]//child::text()" --recover --nowarning - 2> /dev/null)
+        plain_content=$(xmllint --xpath "//p//child::text()" --recover --nowarning - 2> /dev/null <<< $plain_content)
 
-        plain_content=$(echo $plain_content | recode html..utf8)
+
+        plain_content=$(recode html..utf8 <<< $plain_content)
 
 	if [[ $plain_content != *"&"* ]]; then
 		# convert html entities, if any
@@ -31,20 +41,28 @@ do
 	fi
 
 	# remove <ref /> tags
-        plain_content=$(echo $plain_content | sed -r -e 's|<ref([^>]*)/>||g');
+        plain_content=$(sed -r -e 's|<ref([^>]*)/>||g' <<< $plain_content);
+        plain_content=$(sed -r -e 's|<ref[^>]*>| |g' <<< $plain_content);
+        plain_content=$(sed -r -e 's|</ref>| |g' <<< $plain_content);
 
         # remove " ()" which is leftover from the removed template links above
 	# and trim leading/trailing whitespace
-        plain_content=$(echo $plain_content | sed -r -e 's|\s\(\)||g');
+        plain_content=$(sed -r -e 's|\s\(\)||g' <<< $plain_content);
 
 	# remove lines starting with |
-	plain_content=$(echo $plain_content | sed '/^|/ d');
+	plain_content=$(sed '/^|/ d' <<< $plain_content);
 
 	### Trim leading whitespaces ###
 	plain_content="${plain_content##*( )}"
  
 	### trim trailing whitespaces  ##
 	plain_content="${plain_content%%*( )}"
+
+	echo $plain_content;
+	echo "======================================="
+
+
+
 
 	# find out the final byte size of our content
         size_to_append=${#plain_content};
@@ -70,7 +88,7 @@ do
 # break;
 
 
-done < en.xml.files
+done < en.xml.100.files
 
 
 
