@@ -6,10 +6,22 @@ size_per_write=20000;
 write_buffer="";
 outdir=$(readlink -f $2)
 
-$(mkdir $outdir);
+total_lines=$(wc -l < "$1");
+current_line=0;
+current_percent_done=0;
+
+$(mkdir $outdir 2> /dev/null);
 
 while read name
 do
+	current_line=$(($current_line+1));
+	updated_percent=$(echo "$current_line*100/$total_lines" | bc);
+	
+	if (($current_percent_done != "$updated_percent" )); then
+		current_percent_done=$updated_percent;
+		echo $outdir": "$current_percent_done"% current_line:$current_line total_lines:$total_lines";
+	fi
+
    if (("$size_so_far" > "$size_per_file")); then
      size_so_far=0;
      n=$(($n + 1));
