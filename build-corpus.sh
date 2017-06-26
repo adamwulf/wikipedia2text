@@ -4,6 +4,9 @@ size_so_far=0;
 size_per_file=1073741824;
 size_per_write=20000;
 write_buffer="";
+outdir=$(readlink -f $2)
+
+$(mkdir $outdir);
 
 while read name
 do
@@ -80,7 +83,7 @@ do
 			size_so_far=$(($size_so_far + $size_to_append));
 
 			# $name is the file that we'll be appending to the corpus file
-			target_file=../corpus/out-$n.txt
+			target_file=$outdir"/out-$n.txt"
 			target_size=0;
 
 			if [ -f $target_file ]; then
