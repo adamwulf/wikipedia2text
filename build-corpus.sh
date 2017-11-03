@@ -14,6 +14,7 @@ $(mkdir $outdir 2> /dev/null);
 
 while read name
 do
+
 	current_line=$(($current_line+1));
 	updated_percent=$(echo "$current_line*100/$total_lines" | bc);
 	
@@ -30,7 +31,7 @@ do
    if [[ $name != *"/Wikipedia"* && $name != *"Template%3A"* ]]; then
 
 	plain_content="";
-        plainfilename="${name%.*}"
+        plainfilename="${name%.*}.plain.txt"
 
 	if [ -f $plainfilename ]; then
 		plain_content=$(cat $plainfilename);
@@ -44,9 +45,11 @@ do
 		# remove <ref> tags
 		plain_content=$(sed -r -e 's|&lt;ref[^&]*&gt;[^&]*&lt;/ref&gt;||g' <<< $plain_content);
 
+                # remove <math> tags
+                plain_content=$(sed -r -e 's|&lt;math&gt;([^&]\|&[^l]\|&l[^t]\|&lt[^;]\|&lt;[^/])*&lt;/math&gt;||g' <<< $plain_content);
+
 		# get only the content of <p> tags
 		plain_content=$(xmllint --xpath "//p//child::text()" --recover --nowarning - 2> /dev/null <<< $plain_content)
-
 
 		plain_content=$(recode html..utf8 <<< $plain_content)
 
@@ -55,6 +58,9 @@ do
 	#               plain_content=$(echo $plain_content | perl -MHTML::Entities -pe 'decode_entities($_);' 2> /dev/null)
 			plain_content=$(echo $plain_content | php -r 'echo html_entity_decode(file_get_contents("php://stdin"), ENT_QUOTES|ENT_HTML401);' 2> /dev/null)
 		fi
+
+                # remove <math></math> tags
+                plain_content=$(sed -r -e 's|<math>([^<]\|<[^/])*</math>||g' <<< $plain_content);
 
 		# remove <ref /> tags
 		plain_content=$(sed -r -e 's|<ref([^>]*)/>||g' <<< $plain_content);
@@ -77,14 +83,12 @@ do
         	echo $plain_content >> $plainfilename;
 	fi
 
-#	echo $plain_content;
-#	echo "======================================="
-
         size_to_append=${#plain_content};
         size_to_append=$(echo -n $plain_content | wc -c);
 
 	if (("$size_to_append" > 0 )); then
-		write_buffer=$write_buffer$plain_content"\n"
+		NEWLINE=$'\n'
+		write_buffer=$write_buffer$NEWLINE$plain_content
 
 		# find out the final byte size of our content
 		size_to_append=${#write_buffer};
@@ -103,17 +107,18 @@ do
 			fi
 
 			if (("$size_so_far" > "$target_size")); then
-				echo $write_buffer >> $target_file;
-				size_to_append=0;
-				write_buffer="";
+				echo "$write_buffer" >> $target_file;
+				size_so_far=$(($target_size + $size_to_append))
 			fi
+
+                                size_to_append=0;
+                                write_buffer="";
 		fi
 	fi
    fi
 
 
 # break;
-
 
 done < $1
 

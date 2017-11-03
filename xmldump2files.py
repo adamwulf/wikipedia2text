@@ -13,7 +13,28 @@ import sys
 import urllib
 import xml.sax
 
+redirectsTotal = 0
+bytesTotal = 0
+bytesOut = 0
+articleSkip = 0
+articleWrite = 0
+log = open("xmldump2files.log", "a")
+
+def sizeof_fmt(num, suffix='B'):
+    for unit in ['','Ki','Mi','Gi','Ti','Pi','Ei','Zi']:
+        if abs(num) < 1024.0:
+            return "%3.2f%s%s" % (num, unit, suffix)
+        num /= 1024.0
+    return "%.2f%s%s" % (num, 'Yi', suffix)
+
+
 def writeArticle(root, title, text):
+    global articleSkip
+    global articleWrite
+    global bytesOut
+    global bytesTotal
+    global log
+    global redirectsTotal
     # ~2.4 million articles at the moment
     # assuming an even distribution, we want 2 levels of 2 character directories:
     # 3 million / 256 / 256 = 46
@@ -29,18 +50,45 @@ def writeArticle(root, title, text):
     title = urllib.quote(title)
     # Special case for /: "%x" % ord("/") == 2f
     title = title.replace("/", "%2F")
+
+    if len(title) > 127:
+        title = hash
+
     title += ".txt"
-    print title
+    # print title
     filename = os.path.join(level2, title)
 
     if not os.path.exists(level1):
         os.mkdir(level1)
     if not os.path.exists(level2):
         os.mkdir(level2)
-    if len(filename) < 96:
-    	out = open(filename, "w")
-    	out.write(text.encode("UTF-8"))
-    	out.close()
+
+    encoded = text.encode("UTF-8")
+    bytesTotal = bytesTotal + sys.getsizeof(encoded)
+
+    if text.startswith("#REDIRECT [[") or text.startswith("#REDIRECT[["):
+        redirectsTotal = redirectsTotal + 1
+
+        if os.path.exists(filename):
+            os.remove(filename)
+        return
+
+    if not os.path.exists(filename):
+        out = open(filename, "w")
+        out.write(encoded)
+        out.close()
+        bytesOut = bytesOut + sys.getsizeof(encoded)
+        articleWrite = articleWrite + 1
+    else:
+        articleSkip = articleSkip + 1
+
+    if (articleSkip + articleWrite) % 100 == 0:
+        percentComplete = (articleSkip + articleWrite) * 100 / 5500000
+        string = "Redirects %d  Skipped %d  Wrote %d %s  Total %d %s  (%d%%)\n" % (redirectsTotal, articleSkip, articleWrite, sizeof_fmt(bytesOut), articleWrite + articleSkip, sizeof_fmt(bytesTotal), percentComplete)
+        # log = open("xmldump2files.log", "a")
+        log.write(string)
+        # log.close()
+        # print string
 
 
 class WikiPageSplitter(xml.sax.ContentHandler):
@@ -91,3 +139,6 @@ class WikiPageSplitter(xml.sax.ContentHandler):
 
 
 xml.sax.parse(sys.argv[1], WikiPageSplitter(sys.argv[2]))
+
+log.write("done\n")
+log.close()
