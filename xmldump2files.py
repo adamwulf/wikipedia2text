@@ -13,6 +13,7 @@ import sys
 import urllib
 import xml.sax
 
+deletedTotal = 0
 redirectsTotal = 0
 bytesTotal = 0
 bytesOut = 0
@@ -31,13 +32,14 @@ def sizeof_fmt(num, suffix='B'):
 def writeArticle(root, title, text):
     global articleSkip
     global articleWrite
+    global deletedTotal
     global bytesOut
     global bytesTotal
     global log
     global redirectsTotal
-    # ~2.4 million articles at the moment
+    # ~5.5 million articles at the moment
     # assuming an even distribution, we want 2 levels of 2 character directories:
-    # 3 million / 256 / 256 = 46
+    # 5.5 million / 256 / 256 = 83
     # Thus we won't have too many items in any directory
 
     title = title.encode("UTF-8")
@@ -51,7 +53,7 @@ def writeArticle(root, title, text):
     # Special case for /: "%x" % ord("/") == 2f
     title = title.replace("/", "%2F")
 
-    if len(title) > 127:
+    if len(title) > 123:
         title = hash
 
     title += ".txt"
@@ -70,6 +72,7 @@ def writeArticle(root, title, text):
         redirectsTotal = redirectsTotal + 1
 
         if os.path.exists(filename):
+            deletedTotal = deletedTotal + 1
             os.remove(filename)
         return
 
@@ -84,7 +87,7 @@ def writeArticle(root, title, text):
 
     if (articleSkip + articleWrite) % 100 == 0:
         percentComplete = (articleSkip + articleWrite) * 100 / 5500000
-        string = "Redirects %d  Skipped %d  Wrote %d %s  Total %d %s  (%d%%)\n" % (redirectsTotal, articleSkip, articleWrite, sizeof_fmt(bytesOut), articleWrite + articleSkip, sizeof_fmt(bytesTotal), percentComplete)
+        string = "Redirects %d  Deleted %d  Skipped %d  Wrote %d %s  Total %d %s  (%d%%)\n" % (redirectsTotal, deletedTotal, articleSkip, articleWrite, sizeof_fmt(bytesOut), articleWrite + articleSkip, sizeof_fmt(bytesTotal), percentComplete)
         # log = open("xmldump2files.log", "a")
         log.write(string)
         # log.close()
