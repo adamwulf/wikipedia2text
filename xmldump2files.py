@@ -53,6 +53,17 @@ def writeArticle(root, title, text):
     # Special case for /: "%x" % ord("/") == 2f
     title = title.replace("/", "%2F")
 
+    # remove file using old filename
+    oldTitle = title
+    if len(oldTitle) < 256 and len(oldTitle) > 123:
+        oldTitle += ".txt"
+        oldFilename = os.path.join(level2, oldTitle)
+
+        if os.path.exists(oldFilename):
+            deletedTotal = deletedTotal + 1
+            os.remove(filename)
+        return
+
     if len(title) > 123:
         title = hash
 
