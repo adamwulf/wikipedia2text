@@ -77,7 +77,7 @@ def writeArticle(root, title, text):
         os.mkdir(level2)
 
     encoded = text.encode("UTF-8")
-    bytesTotal = bytesTotal + sys.getsizeof(encoded)
+    bytesTotal = bytesTotal + len(encoded)
 
     if text.startswith("#REDIRECT [[") or text.startswith("#REDIRECT[["):
         redirectsTotal = redirectsTotal + 1
@@ -91,7 +91,7 @@ def writeArticle(root, title, text):
         out = open(filename, "w")
         out.write(encoded)
         out.close()
-        bytesOut = bytesOut + sys.getsizeof(encoded)
+        bytesOut = bytesOut + len(encoded)
         articleWrite = articleWrite + 1
     else:
         articleSkip = articleSkip + 1
