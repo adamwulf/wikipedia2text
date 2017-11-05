@@ -61,7 +61,7 @@ def writeArticle(root, title, text):
 
         if os.path.exists(oldFilename):
             deletedTotal = deletedTotal + 1
-            os.remove(filename)
+            os.remove(oldFilename)
         return
 
     if len(title) > 123:
@@ -76,9 +76,6 @@ def writeArticle(root, title, text):
     if not os.path.exists(level2):
         os.mkdir(level2)
 
-    encoded = text.encode("UTF-8")
-    bytesTotal = bytesTotal + len(encoded)
-
     if text.startswith("#REDIRECT [[") or text.startswith("#REDIRECT[["):
         redirectsTotal = redirectsTotal + 1
 
@@ -86,6 +83,9 @@ def writeArticle(root, title, text):
             deletedTotal = deletedTotal + 1
             os.remove(filename)
         return
+
+    encoded = text.encode("UTF-8")
+    bytesTotal = bytesTotal + len(encoded)
 
     if not os.path.exists(filename):
         out = open(filename, "w")
@@ -95,6 +95,7 @@ def writeArticle(root, title, text):
         articleWrite = articleWrite + 1
     else:
         articleSkip = articleSkip + 1
+
 
     if (articleSkip + articleWrite) % 100 == 0:
         percentComplete = (articleSkip + articleWrite) * 100 / 5500000
