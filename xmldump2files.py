@@ -62,6 +62,9 @@ def writeArticle(root, title, text):
         if os.path.exists(oldFilename):
             deletedTotal = deletedTotal + 1
             os.remove(oldFilename)
+            log.write("Deleting oldFilename")
+            log.write(oldFilename)
+            log.write("\n")
         return
 
     if len(title) > 123:
@@ -79,9 +82,12 @@ def writeArticle(root, title, text):
     if text.startswith("#REDIRECT [[") or text.startswith("#REDIRECT[["):
         redirectsTotal = redirectsTotal + 1
 
-        if os.path.exists(filename):
-            deletedTotal = deletedTotal + 1
-            os.remove(filename)
+        #if os.path.exists(filename):
+        #    deletedTotal = deletedTotal + 1
+        #    os.remove(filename)
+        #    log.write("Deleting redirect")
+        #    log.write(filename)
+        #    log.write("\n")
         return
 
     encoded = text.encode("UTF-8")
@@ -93,15 +99,19 @@ def writeArticle(root, title, text):
         out.close()
         bytesOut = bytesOut + len(encoded)
         articleWrite = articleWrite + 1
+        log.write("Writing missing file")
+        log.write(filename)
+        log.write("\n")
     else:
         articleSkip = articleSkip + 1
 
 
-    if (articleSkip + articleWrite) % 100 == 0:
+    if (articleSkip + articleWrite) % 1000 == 0:
         percentComplete = (articleSkip + articleWrite) * 100 / 5500000
         string = "Redirects %d  Deleted %d  Skipped %d  Wrote %d %s  Total %d %s  (%d%%)\n" % (redirectsTotal, deletedTotal, articleSkip, articleWrite, sizeof_fmt(bytesOut), articleWrite + articleSkip, sizeof_fmt(bytesTotal), percentComplete)
         # log = open("xmldump2files.log", "a")
         log.write(string)
+        log.flush()
         # log.close()
         # print string
 
