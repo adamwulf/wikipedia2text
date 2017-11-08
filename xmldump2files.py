@@ -62,9 +62,9 @@ def writeArticle(root, title, text):
         if os.path.exists(oldFilename):
             deletedTotal = deletedTotal + 1
             os.remove(oldFilename)
-            log.write("Deleting oldFilename")
-            log.write(oldFilename)
-            log.write("\n")
+            #log.write("Deleting oldFilename")
+            #log.write(oldFilename)
+            #log.write("\n")
         return
 
     if len(title) > 123:
@@ -99,9 +99,9 @@ def writeArticle(root, title, text):
         out.close()
         bytesOut = bytesOut + len(encoded)
         articleWrite = articleWrite + 1
-        log.write("Writing missing file")
-        log.write(filename)
-        log.write("\n")
+        #log.write("Writing missing file")
+        #log.write(filename)
+        #log.write("\n")
     else:
         articleSkip = articleSkip + 1
 
