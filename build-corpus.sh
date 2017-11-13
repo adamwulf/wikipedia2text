@@ -28,7 +28,7 @@ do
      n=$(($n + 1));
    fi
 
-   if [[ $name != *"/Wikipedia"* && $name != *"Template%3A"* ]]; then
+   if [[ $name != *"/Wikipedia"* && $name != *"Template%3A"* && $name != *"jpg.xml" && $name != *"jpeg.xml" && $name != *"png.xml" ]]; then
 
 	plain_content="";
         plainfilename="${name%.*}.plain.txt"
@@ -53,19 +53,27 @@ do
 
 		plain_content=$(recode html..utf8 <<< $plain_content)
 
-		if [[ $plain_content != *"&"* ]]; then
+		if [[ $plain_content = *"&"* ]]; then
 			# convert html entities, if any
 	#               plain_content=$(echo $plain_content | perl -MHTML::Entities -pe 'decode_entities($_);' 2> /dev/null)
 			plain_content=$(echo $plain_content | php -r 'echo html_entity_decode(file_get_contents("php://stdin"), ENT_QUOTES|ENT_HTML401);' 2> /dev/null)
 		fi
 
                 # remove <math></math> tags
-                plain_content=$(sed -r -e 's|<math>([^<]\|<[^/])*</math>||g' <<< $plain_content);
+		plain_content=$(perl -0777 -p -e 's/<math([^>]*)>((?!<\/math>)(\S|\s))*<\/math>/MATHFORMULA/g' <<< $plain_content);
 
 		# remove <ref /> tags
 		plain_content=$(sed -r -e 's|<ref([^>]*)/>||g' <<< $plain_content);
 		plain_content=$(sed -r -e 's|<ref[^>]*>| |g' <<< $plain_content);
 		plain_content=$(sed -r -e 's|</ref>| |g' <<< $plain_content);
+
+                # remove <timeline> tags
+                plain_content=$(perl -0777 -p -e 's/<timeline([^>]*)>((?!<\/timeline>)(\S|\s))*<\/timeline>//g' <<< $plain_content);
+
+		# replace " (; " with " ( "
+		# same with " (, "
+                plain_content=$(sed -r -e 's| \(; | (|g' <<< $plain_content);
+                plain_content=$(sed -r -e 's| \(, | (|g' <<< $plain_content);
 
 		# remove " ()" which is leftover from the removed template links above
 		# and trim leading/trailing whitespace
@@ -107,12 +115,14 @@ do
 			fi
 
 			if (("$size_so_far" > "$target_size")); then
+				# echo "writing to corpus"
+				# echo $write_buffer
 				echo "$write_buffer" >> $target_file;
 				size_so_far=$(($target_size + $size_to_append))
 			fi
 
-                                size_to_append=0;
-                                write_buffer="";
+                        size_to_append=0;
+                        write_buffer="";
 		fi
 	fi
    fi
@@ -122,6 +132,13 @@ do
 
 done < $1
 
+# finish writing anything in the buffer
+if (("$size_to_append" > 0)); then
+#        echo "writing remaining of buffer";
+#        echo $write_buffer;
+        target_file=$outdir"/out-$n.txt"
+        echo "$write_buffer" >> $target_file;
+fi
 
 
 

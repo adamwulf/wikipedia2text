@@ -1,17 +1,16 @@
-./build-corpus.sh en.xml.split.0.xml articles/corpus0 &
-./build-corpus.sh en.xml.split.1.xml articles/corpus1 &
-./build-corpus.sh en.xml.split.2.xml articles/corpus2 &
-./build-corpus.sh en.xml.split.3.xml articles/corpus3 &
-./build-corpus.sh en.xml.split.4.xml articles/corpus4 &
-./build-corpus.sh en.xml.split.5.xml articles/corpus5 &
-./build-corpus.sh en.xml.split.6.xml articles/corpus6 &
-./build-corpus.sh en.xml.split.7.xml articles/corpus7 &
-./build-corpus.sh en.xml.split.8.xml articles/corpus8 &
-./build-corpus.sh en.xml.split.9.xml articles/corpus9 &
-./build-corpus.sh en.xml.split.10.xml articles/corpus10 &
-./build-corpus.sh en.xml.split.11.xml articles/corpus11 &
-./build-corpus.sh en.xml.split.12.xml articles/corpus12 &
-./build-corpus.sh en.xml.split.13.xml articles/corpus13 &
-./build-corpus.sh en.xml.split.14.xml articles/corpus14 &
-./build-corpus.sh en.xml.split.15.xml articles/corpus15 &
-
+./build-corpus.sh ../../data/wikipedia-xml/en.xml.split0.files ../../data/wikipedia-corpus/corpus0 &
+./build-corpus.sh ../../data/wikipedia-xml/en.xml.split1.files ../../data/wikipedia-corpus/corpus1 &
+./build-corpus.sh ../../data/wikipedia-xml/en.xml.split2.files ../../data/wikipedia-corpus/corpus2 &
+./build-corpus.sh ../../data/wikipedia-xml/en.xml.split3.files ../../data/wikipedia-corpus/corpus3 &
+./build-corpus.sh ../../data/wikipedia-xml/en.xml.split4.files ../../data/wikipedia-corpus/corpus4 &
+./build-corpus.sh ../../data/wikipedia-xml/en.xml.split5.files ../../data/wikipedia-corpus/corpus5 &
+./build-corpus.sh ../../data/wikipedia-xml/en.xml.split6.files ../../data/wikipedia-corpus/corpus6 &
+./build-corpus.sh ../../data/wikipedia-xml/en.xml.split7.files ../../data/wikipedia-corpus/corpus7 &
+# ./build-corpus.sh ../../data/wikipedia-xml/en.xml.split8.files ../../data/wikipedia-corpus/corpus8 &
+# ./build-corpus.sh ../../data/wikipedia-xml/en.xml.split9.files ../../data/wikipedia-corpus/corpus9 &
+# ./build-corpus.sh ../../data/wikipedia-xml/en.xml.split10.files ../../data/wikipedia-corpus/corpus10 &
+# ./build-corpus.sh ../../data/wikipedia-xml/en.xml.split11.files ../../data/wikipedia-corpus/corpus11 &
+# ./build-corpus.sh ../../data/wikipedia-xml/en.xml.split12.files ../../data/wikipedia-corpus/corpus12 &
+# ./build-corpus.sh ../../data/wikipedia-xml/en.xml.split13.files ../../data/wikipedia-corpus/corpus13 &
+# ./build-corpus.sh ../../data/wikipedia-xml/en.xml.split14.files ../../data/wikipedia-corpus/corpus14 &
+# ./build-corpus.sh ../../data/wikipedia-xml/en.xml.split15.files ../../data/wikipedia-corpus/corpus15 &

@@ -26,6 +26,9 @@ output = open(sys.argv[2], "w")
 # Extract the words from all the files in the subdirectories
 for xmlfile in findXMLIterator(sys.argv[1]):
     try:
-        output.write(wikisoup.extractWikipediaText(xmlfile).encode("UTF-8"))
+        print xmlfile
+        rawtext = wikisoup.extractWikipediaText(xmlfile).encode("UTF-8")
+        print rawtext
+        output.write(rawtext)
     except:
         print xmlfile

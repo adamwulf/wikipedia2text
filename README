@@ -1,0 +1,27 @@
+
+# Sample command to convert wiki-markup to XML
+php ../mediawiki-1.28.2/maintenance/parse.php  ../../data/wikipedia-articles/af/af/Wikipedia%3AToday%27s_second_feature%2FJanuary_1%2C_2006.txt > sample
+
+
+# Generate 8 scripts that will convert all wiki files to xml files
+java -jar sleep.jar into8.sl ../../data/wikipedia-xml/en.files &
+
+# Launch all 8 scripts to generate XML from wiki-markup
+
+./launch-all.sh
+
+
+# Find XML files and concat paths into single file
+find ../../data/wikipedia-articles -type f -name *.xml > ../../data/wikipedia-xml/en.xml.files
+
+# Split list of XML files into 8 lists of XML files, so we can generate 1 corpus per list
+java -jar sleep.jar into8xml.sl ../../data/wikipedia-xml/en.xml.files &
+
+
+# Sample command to generate corpus file from XML files
+
+./build-corpus.sh en.xml.files corpus-out/
+
+
+# Run top and filter by process name (also, press 'c' to show full process path)
+top -p $(pgrep -d',' process-name)
