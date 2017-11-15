@@ -22,6 +22,14 @@ java -jar sleep.jar into8xml.sl ../../data/wikipedia-xml/en.xml.files &
 
 ./build-corpus.sh en.xml.files corpus-out/
 
+# the build-corpus.sh can be stopped and restarted. to stop the running process, create a file called 'stop.command'
+touch stop.command
+
+#to allow the command to run again next time, just remove or rename that file
+rm stop.command
+
+# build-corpus.sh also outputs log and progress files next to its output. if the process is stopped, it'll output state files to its corpus output directory so that it can continue later.
+
 
 # Run top and filter by process name (also, press 'c' to show full process path)
 top -p $(pgrep -d',' process-name)

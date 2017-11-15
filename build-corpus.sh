@@ -1,3 +1,9 @@
+if [ -f "stop.command" ]; then
+	echo "Please remove stop.command file"
+        exit
+fi
+
+
 
 n=0;
 size_so_far=0;
@@ -10,18 +16,52 @@ total_lines=$(wc -l < "$1");
 current_line=0;
 current_percent_done=0;
 
+log_file=$outdir"/progress.log"
+last_line_file=$outdir"/stopped.line"
+last_n_file=$outdir"/stopped.n"
+
+skip_until=0
+
 $(mkdir $outdir 2> /dev/null);
+
+echo "started." >> $log_file;
+
+
+if [ -f $last_line_file ]; then
+	n=$(cat $last_n_file);
+	skip_until=$(cat $last_line_file);
+	target_file=$outdir"/out-$n.txt"
+	size_so_far=$(wc -c $target_file | awk '{ print $1 }')
+	echo "scanning to line $skip_until for file $n" >> $log_file
+fi
 
 while read name
 do
+
+	if [ -f "stop.command" ]; then
+		echo $current_line > $last_line_file;
+		echo $n > $last_n_file;
+		echo "stopped at $current_line with size $size_so_far" >> $log_file;
+		exit;
+	fi
 
 	current_line=$(($current_line+1));
 	updated_percent=$(echo "$current_line*100/$total_lines" | bc);
 	
 	if (($current_percent_done != "$updated_percent" )); then
 		current_percent_done=$updated_percent;
-		echo $outdir": "$current_percent_done"% current_line:$current_line total_lines:$total_lines";
+		echo $outdir": "$current_percent_done"% current_line:$current_line total_lines:$total_lines" >> $log_file;
 	fi
+
+
+        if (($current_line < $skip_until + 1)); then
+                continue
+        fi
+
+        if (($current_line == $skip_until + 1)); then
+                echo "restarting: "$current_percent_done"% current_line:$current_line total_lines:$total_lines with size: $size_so_far" >> $log_file;
+        fi
+
 
    if (("$size_so_far" > "$size_per_file")); then
      size_so_far=0;
@@ -88,7 +128,7 @@ do
 		### trim trailing whitespaces  ##
 		plain_content="${plain_content%%*( )}"
 
-        	echo $plain_content >> $plainfilename;
+        	echo $plain_content > $plainfilename;
 	fi
 
         size_to_append=${#plain_content};
@@ -141,5 +181,9 @@ if (("$size_to_append" > 0)); then
 fi
 
 
+echo "done." >> $log_file
+
+$(rm -f $last_line_file 2> /dev/null);
+$(rm -f $last_n_file 2> /dev/null);
 
 
