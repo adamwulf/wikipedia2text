@@ -1,5 +1,6 @@
 rm samples/progress.log
 rm samples/out-0.txt
+rm ../../data/wikipedia-articles/af/95/Kepler-56.plain.txt
 rm ../../data/wikipedia-articles/af/62/Annie_Mack.plain.txt
 rm ../../data/wikipedia-articles/af/45/Trans_%28film%29.plain.txt
 rm ../../data/wikipedia-articles/50/e2/Strewing_herb.plain.txt

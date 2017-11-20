@@ -128,7 +128,6 @@ do
                 plain_content=$(perl -0777 -p -e 's/<h4([^>]*)>((?!<\/h4>)(\S|\s))*<\/h4>//ig' <<< "$plain_content");
                 plain_content=$(perl -0777 -p -e 's/<h5([^>]*)>((?!<\/h5>)(\S|\s))*<\/h5>//ig' <<< "$plain_content");
 
-
 		# get only the content of <p> tags
 		plain_content=$(xmllint --xpath "//p//child::text()" --recover --nowarning - 2> /dev/null <<< "$plain_content")
 		plain_content=$(recode html..utf8 <<< "$plain_content")
@@ -148,10 +147,6 @@ do
 
 		# remove lines only of codeblocks
                 plain_content=$(sed '/^CODEBLOCK$/d' <<< "$plain_content");
-
-
-		# remove URLs
-                plain_content=$(perl -0777 -p -e 's/([a-zA-Z]+:\/\/){0,1}[-a-zA-Z0-9@:%._\+~#=]{2,256}\.[a-z]{2,6}\b([-a-zA-Z0-9@:%_\+.~#?&\/\/=]*)/LINKURL/g' <<< "$plain_content");
 
                 # remove <math></math> tags
 		if [[ $plain_content == *"<math"* ]]; then
@@ -192,6 +187,10 @@ do
                 if [[ $plain_content == *"Source:"* ]]; then
                         plain_content=$(sed '/^Source:/d' <<< "$plain_content");
                 fi
+
+                # remove URLs
+                plain_content=$(perl -0777 -p -e 's/([a-zA-Z]+:\/\/){0,1}[-a-zA-Z0-9@:%._\+~#=]{2,256}\.[a-z]{2,6}\b([-a-zA-Z0-9@:%_\+.~#?&\/\/=]*)/LINKURL/g' <<< "$plain_content");
+
 
 		### Remove empty lines
                 plain_content=$(sed '/^$/d' <<< "$plain_content");
