@@ -33,3 +33,8 @@ rm stop.command
 
 # Run top and filter by process name (also, press 'c' to show full process path)
 top -p $(pgrep -d',' process-name)
+
+# If I need to restart generating the plain corpus from the xml, then I should also remove all the *.plain.txt from wikipedia-articles.
+# the scripts to do this can be generated with:
+java -jar sleep.jar removeplain8.sl removeplain8.sl ../../data/wikipedia-xml/en.files
+# and then these scripts can be run directly from ../../wikipedia-xml/ directory

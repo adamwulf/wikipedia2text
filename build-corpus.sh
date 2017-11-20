@@ -68,7 +68,7 @@ do
      n=$(($n + 1));
    fi
 
-   if [[ $name != *"/Wikipedia"* && $name != *"Template%3A"* && $name != *"jpg.xml" && $name != *"jpeg.xml" && $name != *"png.xml" ]]; then
+   if [[ $name != *"/Wikipedia"* && $name != *"Template%3A"* && $name != *"Module%3A"* && $name != *"jpg.xml" && $name != *"jpeg.xml" && $name != *"png.xml" ]]; then
 
 	plain_content="";
         plainfilename="${name%.*}.plain.txt"
@@ -82,7 +82,8 @@ do
                 # remove lines starting with |
                	plain_content=$(sed '/^|/d' <<< "$plain_content");
                 plain_content=$(sed '/^!/d' <<< "$plain_content");
-
+                plain_content=$(sed '/^{|/d' <<< "$plain_content");
+                plain_content=$(sed '/^<p>|/d' <<< "$plain_content");
 
 		#
 		# After this, the entire content will be treated as a single line.
@@ -94,63 +95,86 @@ do
 
 		# remove template links
 		if [[ $plain_content == *">Template"* ]]; then
-			plain_content=$(sed -r -e 's|<a [^>]*>Template:[^>]*</a>||g' <<< $plain_content);
+			plain_content=$(sed -r -e 's|<a [^>]*>Template:[^>]*</a>||g' <<< "$plain_content");
 		fi
+
 
 		# remove <ref> tags
 		if [[ $plain_content == *";ref"* ]]; then
-			plain_content=$(sed -r -e 's|&lt;ref[^&]*&gt;[^&]*&lt;/ref&gt;||g' <<< $plain_content);
+			plain_content=$(sed -r -e 's|&lt;ref[^&]*&gt;[^&]*&lt;/ref&gt;||g' <<< "$plain_content");
 		fi
 
                 # remove <math> tags
 		if [[ $plain_content == *";math"* ]]; then
-                	plain_content=$(sed -r -e 's|&lt;math&gt;([^&]\|&[^l]\|&l[^t]\|&lt[^;]\|&lt;[^/])*&lt;/math&gt;|MATHFORMULA|g' <<< $plain_content);
+                	plain_content=$(sed -r -e 's|&lt;math&gt;([^&]\|&[^l]\|&l[^t]\|&lt[^;]\|&lt;[^/])*&lt;/math&gt;|MATHFORMULA|g' <<< "$plain_content");
 		fi
+
+
+
+
+                # remove <syntaxhighlight></syntaxhighlight> tags
+                if [[ $plain_content == *"&lt;syntaxhighlight"* ]]; then
+                        plain_content=$(perl -0777 -p -e 's/&lt;syntaxhighlight((?!&gt;)(\S|\s))*&gt;((?!&lt;\/syntaxhighlight&gt;)(\S|\s))*&lt;\/syntaxhighlight&gt;/CODEBLOCK/g' <<< "$plain_content");
+                fi
+
 
 		# get only the content of <p> tags
 		plain_content=$(xmllint --xpath "//p//child::text()" --recover --nowarning - 2> /dev/null <<< "$plain_content")
-
-		plain_content=$(recode html..utf8 <<< $plain_content)
+		plain_content=$(recode html..utf8 <<< "$plain_content")
 
 		if [[ $plain_content = *"&"* ]]; then
 			# convert html entities, if any
-	#               plain_content=$(echo $plain_content | perl -MHTML::Entities -pe 'decode_entities($_);' 2> /dev/null)
-			plain_content=$(echo $plain_content | php -r 'echo html_entity_decode(file_get_contents("php://stdin"), ENT_QUOTES|ENT_HTML401);' 2> /dev/null)
+	#               plain_content=$(echo "$plain_content" | perl -MHTML::Entities -pe 'decode_entities($_);' 2> /dev/null)
+			plain_content=$(echo "$plain_content" | php -r 'echo html_entity_decode(file_get_contents("php://stdin"), ENT_QUOTES|ENT_HTML401);' 2> /dev/null)
 		fi
+
+
+		# remove <syntaxhighlight></syntaxhighlight> tags
+                if [[ $plain_content == *"<syntaxhighlight"* ]]; then
+                        plain_content=$(perl -0777 -p -e 's/<syntaxhighlight([^>]*)>((?!<\/syntaxhighlight>)(\S|\s))*<\/syntaxhighlight>/CODEBLOCK/g' <<< "$plain_content");
+                fi
+
+		# remove lines only of codeblocks
+                plain_content=$(sed '/^CODEBLOCK$/d' <<< "$plain_content");
+
+
+		# remove URLs
+                plain_content=$(perl -0777 -p -e 's/([a-zA-Z]+:\/\/){0,1}[-a-zA-Z0-9@:%._\+~#=]{2,256}\.[a-z]{2,6}\b([-a-zA-Z0-9@:%_\+.~#?&\/\/=]*)/LINKURL/g' <<< "$plain_content");
+
 
                 # remove <math></math> tags
 		if [[ $plain_content == *"<math"* ]]; then
-			plain_content=$(perl -0777 -p -e 's/<math([^>]*)>((?!<\/math>)(\S|\s))*<\/math>/MATHFORMULA/g' <<< $plain_content);
+			plain_content=$(perl -0777 -p -e 's/<math([^>]*)>((?!<\/math>)(\S|\s))*<\/math>/MATHFORMULA/g' <<< "$plain_content");
 		fi
+
+                # remove lines only of codeblocks
+                plain_content=$(sed '/^MATHFORMULA$/d' <<< "$plain_content");
+
 
 		# remove <ref /> tags
 		if [[ $plain_content == *"<ref"* ]]; then
-			plain_content=$(sed -r -e 's|<ref([^>]*)/>||g' <<< $plain_content);
-			plain_content=$(sed -r -e 's|<ref[^>]*>| |g' <<< $plain_content);
-                        plain_content=$(sed -r -e 's|</ref>| |g' <<< $plain_content);
-		fi
-		if [[ $plain_content == *"</ref"* ]]; then
-			plain_content=$(sed -r -e 's|</ref>| |g' <<< $plain_content);
+			plain_content=$(sed -r -e 's|<ref([^>]*)/>||g' <<< "$plain_content");
+                        plain_content=$(perl -0777 -p -e 's/<ref([^>]*)>((?!<\/ref>)(\S|\s))*<\/ref>//g' <<< "$plain_content");
 		fi
 
                 # remove <timeline> tags
 		if [[ $plain_content == *"<timeline"* ]]; then
-                	plain_content=$(perl -0777 -p -e 's/<timeline([^>]*)>((?!<\/timeline>)(\S|\s))*<\/timeline>//g' <<< $plain_content);
+                	plain_content=$(perl -0777 -p -e 's/<timeline([^>]*)>((?!<\/timeline>)(\S|\s))*<\/timeline>//g' <<< "$plain_content");
 		fi
 
 		# replace " (; " with " ( "
 		# same with " (, "
 		if [[ $plain_content == *"(;"* ]]; then
-                	plain_content=$(sed -r -e 's| \(; | (|g' <<< $plain_content);
+                	plain_content=$(sed -r -e 's| \(; | (|g' <<< "$plain_content");
 		fi
 		if [[ $plain_content == *"(,"* ]]; then
-                        plain_content=$(sed -r -e 's| \(, | (|g' <<< $plain_content);
+                        plain_content=$(sed -r -e 's| \(, | (|g' <<< "$plain_content");
 		fi
 
 		# remove " ()" which is leftover from the removed template links above
 		# and trim leading/trailing whitespace
 		if [[ $plain_content == *"()"* ]]; then
-			plain_content=$(sed -r -e 's|\s\(\)||g' <<< $plain_content);
+			plain_content=$(sed -r -e 's|\s\(\)||g' <<< "$plain_content");
 		fi
 
 		### Trim leading whitespaces ###
@@ -158,6 +182,7 @@ do
  
 		### trim trailing whitespaces  ##
 		plain_content="${plain_content%%*( )}"
+
 
         	echo $plain_content > $plainfilename;
 	fi
