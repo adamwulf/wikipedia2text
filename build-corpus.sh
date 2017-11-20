@@ -79,6 +79,7 @@ do
 		# read in the content
 		plain_content=$(cat header $name footer);
 
+
                 # remove lines starting with |
                	plain_content=$(sed '/^|/d' <<< "$plain_content");
                 plain_content=$(sed '/^!/d' <<< "$plain_content");
@@ -107,20 +108,31 @@ do
                 # remove <math> tags
 		if [[ $plain_content == *";math"* ]]; then
                 	plain_content=$(sed -r -e 's|&lt;math&gt;([^&]\|&[^l]\|&l[^t]\|&lt[^;]\|&lt;[^/])*&lt;/math&gt;|MATHFORMULA|g' <<< "$plain_content");
+                        plain_content=$(perl -0777 -p -e 's|&lt;math&gt;([^&]\|&[^l]\|&l[^t]\|&lt[^;]\|&lt;[^/])*&lt;/math&gt;|MATHFORMULA|g' <<< "$plain_content");
 		fi
-
-
-
 
                 # remove <syntaxhighlight></syntaxhighlight> tags
                 if [[ $plain_content == *"&lt;syntaxhighlight"* ]]; then
                         plain_content=$(perl -0777 -p -e 's/&lt;syntaxhighlight((?!&gt;)(\S|\s))*&gt;((?!&lt;\/syntaxhighlight&gt;)(\S|\s))*&lt;\/syntaxhighlight&gt;/CODEBLOCK/g' <<< "$plain_content");
                 fi
 
+                # remove <td></td> and <th></th> tags
+                if [[ $plain_content == *"<td"* ]]; then
+                        plain_content=$(perl -0777 -p -e 's/<td([^>]*)>((?!<\/td>)(\S|\s))*<\/td>//g' <<< "$plain_content");
+                        plain_content=$(perl -0777 -p -e 's/<th([^>]*)>((?!<\/th>)(\S|\s))*<\/th>//g' <<< "$plain_content");
+                fi
+
+
+                plain_content=$(perl -0777 -p -e 's/<h1([^>]*)>((?!<\/h1>)(\S|\s))*<\/h1>//g' <<< "$plain_content");
+                plain_content=$(perl -0777 -p -e 's/<h2([^>]*)>((?!<\/h2>)(\S|\s))*<\/h2>//g' <<< "$plain_content");
+                plain_content=$(perl -0777 -p -e 's/<h3([^>]*)>((?!<\/h3>)(\S|\s))*<\/h3>//g' <<< "$plain_content");
+                plain_content=$(perl -0777 -p -e 's/<h4([^>]*)>((?!<\/h4>)(\S|\s))*<\/h4>//g' <<< "$plain_content");
+                plain_content=$(perl -0777 -p -e 's/<h5([^>]*)>((?!<\/h5>)(\S|\s))*<\/h5>//g' <<< "$plain_content");
 
 		# get only the content of <p> tags
 		plain_content=$(xmllint --xpath "//p//child::text()" --recover --nowarning - 2> /dev/null <<< "$plain_content")
 		plain_content=$(recode html..utf8 <<< "$plain_content")
+
 
 		if [[ $plain_content = *"&"* ]]; then
 			# convert html entities, if any
@@ -140,7 +152,6 @@ do
 
 		# remove URLs
                 plain_content=$(perl -0777 -p -e 's/([a-zA-Z]+:\/\/){0,1}[-a-zA-Z0-9@:%._\+~#=]{2,256}\.[a-z]{2,6}\b([-a-zA-Z0-9@:%_\+.~#?&\/\/=]*)/LINKURL/g' <<< "$plain_content");
-
 
                 # remove <math></math> tags
 		if [[ $plain_content == *"<math"* ]]; then
@@ -176,6 +187,16 @@ do
 		if [[ $plain_content == *"()"* ]]; then
 			plain_content=$(sed -r -e 's|\s\(\)||g' <<< "$plain_content");
 		fi
+
+                # remove lines starting with Source:
+                if [[ $plain_content == *"Source:"* ]]; then
+                        plain_content=$(sed '/^Source:/d' <<< "$plain_content");
+                fi
+
+		### Remove empty lines
+                plain_content=$(sed '/^$/d' <<< "$plain_content");
+
+                plain_content=$(sed -r -e 's/\[edit\]//g' <<< "$plain_content");
 
 		### Trim leading whitespaces ###
 		plain_content="${plain_content##*( )}"

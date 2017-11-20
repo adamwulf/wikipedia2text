@@ -1,3 +1,6 @@
+rm samples/progress.log
+rm samples/out-0.txt
+rm ../../data/wikipedia-articles/af/36/2014_Santos_FC_season.plain.txt
 rm ../../data/wikipedia-articles/11/89/Module%3AImage_array.plain.txt
 rm ../../data/wikipedia-articles/af/d3/Mykonos_International_Airport.plain.txt
 rm ../../data/wikipedia-articles/0d/a2/Google_Chrome_App.plain.txt
