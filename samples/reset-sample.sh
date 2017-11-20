@@ -1,5 +1,7 @@
 rm samples/progress.log
 rm samples/out-0.txt
+rm ../../data/wikipedia-articles/af/45/Trans_%28film%29.plain.txt
+rm ../../data/wikipedia-articles/50/e2/Strewing_herb.plain.txt
 rm ../../data/wikipedia-articles/af/36/2014_Santos_FC_season.plain.txt
 rm ../../data/wikipedia-articles/11/89/Module%3AImage_array.plain.txt
 rm ../../data/wikipedia-articles/af/d3/Mykonos_International_Airport.plain.txt

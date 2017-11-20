@@ -102,12 +102,11 @@ do
 
 		# remove <ref> tags
 		if [[ $plain_content == *";ref"* ]]; then
-			plain_content=$(sed -r -e 's|&lt;ref[^&]*&gt;[^&]*&lt;/ref&gt;||g' <<< "$plain_content");
+                        plain_content=$(perl -0777 -p -e 's|&lt;ref&gt;([^&]\|&[^l]\|&l[^t]\|&lt[^;]\|&lt;[^/])*&lt;/ref&gt;||g' <<< "$plain_content");
 		fi
 
                 # remove <math> tags
 		if [[ $plain_content == *";math"* ]]; then
-                	plain_content=$(sed -r -e 's|&lt;math&gt;([^&]\|&[^l]\|&l[^t]\|&lt[^;]\|&lt;[^/])*&lt;/math&gt;|MATHFORMULA|g' <<< "$plain_content");
                         plain_content=$(perl -0777 -p -e 's|&lt;math&gt;([^&]\|&[^l]\|&l[^t]\|&lt[^;]\|&lt;[^/])*&lt;/math&gt;|MATHFORMULA|g' <<< "$plain_content");
 		fi
 
@@ -128,6 +127,7 @@ do
                 plain_content=$(perl -0777 -p -e 's/<h3([^>]*)>((?!<\/h3>)(\S|\s))*<\/h3>//g' <<< "$plain_content");
                 plain_content=$(perl -0777 -p -e 's/<h4([^>]*)>((?!<\/h4>)(\S|\s))*<\/h4>//g' <<< "$plain_content");
                 plain_content=$(perl -0777 -p -e 's/<h5([^>]*)>((?!<\/h5>)(\S|\s))*<\/h5>//g' <<< "$plain_content");
+
 
 		# get only the content of <p> tags
 		plain_content=$(xmllint --xpath "//p//child::text()" --recover --nowarning - 2> /dev/null <<< "$plain_content")
@@ -203,7 +203,6 @@ do
  
 		### trim trailing whitespaces  ##
 		plain_content="${plain_content%%*( )}"
-
 
         	echo $plain_content > $plainfilename;
 	fi

@@ -1,3 +1,5 @@
+../../data/wikipedia-articles/af/45/Trans_%28film%29.xml
+../../data/wikipedia-articles/50/e2/Strewing_herb.xml
 ../../data/wikipedia-articles/70/ae/Derivative.xml
 ../../data/wikipedia-articles/af/36/2014_Santos_FC_season.xml
 ../../data/wikipedia-articles/11/89/Module%3AImage_array.xml
