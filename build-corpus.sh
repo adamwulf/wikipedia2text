@@ -96,37 +96,37 @@ do
 
 		# remove template links
 		if [[ $plain_content == *">Template"* ]]; then
-			plain_content=$(sed -r -e 's|<a [^>]*>Template:[^>]*</a>||g' <<< "$plain_content");
+			plain_content=$(sed -r -e 's|<a [^>]*>Template:[^>]*</a>||ig' <<< "$plain_content");
 		fi
 
 
 		# remove <ref> tags
 		if [[ $plain_content == *";ref"* ]]; then
-                        plain_content=$(perl -0777 -p -e 's|&lt;ref&gt;([^&]\|&[^l]\|&l[^t]\|&lt[^;]\|&lt;[^/])*&lt;/ref&gt;||g' <<< "$plain_content");
+                        plain_content=$(perl -0777 -p -e 's|&lt;ref&gt;([^&]\|&[^l]\|&l[^t]\|&lt[^;]\|&lt;[^/])*&lt;/ref&gt;||ig' <<< "$plain_content");
 		fi
 
                 # remove <math> tags
 		if [[ $plain_content == *";math"* ]]; then
-                        plain_content=$(perl -0777 -p -e 's|&lt;math&gt;([^&]\|&[^l]\|&l[^t]\|&lt[^;]\|&lt;[^/])*&lt;/math&gt;|MATHFORMULA|g' <<< "$plain_content");
+                        plain_content=$(perl -0777 -p -e 's|&lt;math&gt;([^&]\|&[^l]\|&l[^t]\|&lt[^;]\|&lt;[^/])*&lt;/math&gt;|MATHFORMULA|ig' <<< "$plain_content");
 		fi
 
                 # remove <syntaxhighlight></syntaxhighlight> tags
                 if [[ $plain_content == *"&lt;syntaxhighlight"* ]]; then
-                        plain_content=$(perl -0777 -p -e 's/&lt;syntaxhighlight((?!&gt;)(\S|\s))*&gt;((?!&lt;\/syntaxhighlight&gt;)(\S|\s))*&lt;\/syntaxhighlight&gt;/CODEBLOCK/g' <<< "$plain_content");
+                        plain_content=$(perl -0777 -p -e 's/&lt;syntaxhighlight((?!&gt;)(\S|\s))*&gt;((?!&lt;\/syntaxhighlight&gt;)(\S|\s))*&lt;\/syntaxhighlight&gt;/CODEBLOCK/ig' <<< "$plain_content");
                 fi
 
                 # remove <td></td> and <th></th> tags
                 if [[ $plain_content == *"<td"* ]]; then
-                        plain_content=$(perl -0777 -p -e 's/<td([^>]*)>((?!<\/td>)(\S|\s))*<\/td>//g' <<< "$plain_content");
-                        plain_content=$(perl -0777 -p -e 's/<th([^>]*)>((?!<\/th>)(\S|\s))*<\/th>//g' <<< "$plain_content");
+                        plain_content=$(perl -0777 -p -e 's/<td([^>]*)>((?!<\/td>)(\S|\s))*<\/td>//ig' <<< "$plain_content");
+                        plain_content=$(perl -0777 -p -e 's/<th([^>]*)>((?!<\/th>)(\S|\s))*<\/th>//ig' <<< "$plain_content");
                 fi
 
 
-                plain_content=$(perl -0777 -p -e 's/<h1([^>]*)>((?!<\/h1>)(\S|\s))*<\/h1>//g' <<< "$plain_content");
-                plain_content=$(perl -0777 -p -e 's/<h2([^>]*)>((?!<\/h2>)(\S|\s))*<\/h2>//g' <<< "$plain_content");
-                plain_content=$(perl -0777 -p -e 's/<h3([^>]*)>((?!<\/h3>)(\S|\s))*<\/h3>//g' <<< "$plain_content");
-                plain_content=$(perl -0777 -p -e 's/<h4([^>]*)>((?!<\/h4>)(\S|\s))*<\/h4>//g' <<< "$plain_content");
-                plain_content=$(perl -0777 -p -e 's/<h5([^>]*)>((?!<\/h5>)(\S|\s))*<\/h5>//g' <<< "$plain_content");
+                plain_content=$(perl -0777 -p -e 's/<h1([^>]*)>((?!<\/h1>)(\S|\s))*<\/h1>//ig' <<< "$plain_content");
+                plain_content=$(perl -0777 -p -e 's/<h2([^>]*)>((?!<\/h2>)(\S|\s))*<\/h2>//ig' <<< "$plain_content");
+                plain_content=$(perl -0777 -p -e 's/<h3([^>]*)>((?!<\/h3>)(\S|\s))*<\/h3>//ig' <<< "$plain_content");
+                plain_content=$(perl -0777 -p -e 's/<h4([^>]*)>((?!<\/h4>)(\S|\s))*<\/h4>//ig' <<< "$plain_content");
+                plain_content=$(perl -0777 -p -e 's/<h5([^>]*)>((?!<\/h5>)(\S|\s))*<\/h5>//ig' <<< "$plain_content");
 
 
 		# get only the content of <p> tags
@@ -143,7 +143,7 @@ do
 
 		# remove <syntaxhighlight></syntaxhighlight> tags
                 if [[ $plain_content == *"<syntaxhighlight"* ]]; then
-                        plain_content=$(perl -0777 -p -e 's/<syntaxhighlight([^>]*)>((?!<\/syntaxhighlight>)(\S|\s))*<\/syntaxhighlight>/CODEBLOCK/g' <<< "$plain_content");
+                        plain_content=$(perl -0777 -p -e 's/<syntaxhighlight([^>]*)>((?!<\/syntaxhighlight>)(\S|\s))*<\/syntaxhighlight>/CODEBLOCK/ig' <<< "$plain_content");
                 fi
 
 		# remove lines only of codeblocks
@@ -155,7 +155,7 @@ do
 
                 # remove <math></math> tags
 		if [[ $plain_content == *"<math"* ]]; then
-			plain_content=$(perl -0777 -p -e 's/<math([^>]*)>((?!<\/math>)(\S|\s))*<\/math>/MATHFORMULA/g' <<< "$plain_content");
+			plain_content=$(perl -0777 -p -e 's/<math([^>]*)>((?!<\/math>)(\S|\s))*<\/math>/MATHFORMULA/ig' <<< "$plain_content");
 		fi
 
                 # remove lines only of codeblocks
@@ -165,12 +165,12 @@ do
 		# remove <ref /> tags
 		if [[ $plain_content == *"<ref"* ]]; then
 			plain_content=$(sed -r -e 's|<ref([^>]*)/>||g' <<< "$plain_content");
-                        plain_content=$(perl -0777 -p -e 's/<ref([^>]*)>((?!<\/ref>)(\S|\s))*<\/ref>//g' <<< "$plain_content");
+                        plain_content=$(perl -0777 -p -e 's/<ref([^>]*)>((?!<\/ref>)(\S|\s))*<\/ref>//ig' <<< "$plain_content");
 		fi
 
                 # remove <timeline> tags
 		if [[ $plain_content == *"<timeline"* ]]; then
-                	plain_content=$(perl -0777 -p -e 's/<timeline([^>]*)>((?!<\/timeline>)(\S|\s))*<\/timeline>//g' <<< "$plain_content");
+                	plain_content=$(perl -0777 -p -e 's/<timeline([^>]*)>((?!<\/timeline>)(\S|\s))*<\/timeline>//ig' <<< "$plain_content");
 		fi
 
 		# replace " (; " with " ( "
@@ -203,6 +203,7 @@ do
  
 		### trim trailing whitespaces  ##
 		plain_content="${plain_content%%*( )}"
+
 
         	echo $plain_content > $plainfilename;
 	fi
