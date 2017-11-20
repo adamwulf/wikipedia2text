@@ -7,7 +7,7 @@ fi
 
 n=0;
 size_so_far=0;
-size_per_file=1073741824;
+size_per_file=2073741824;
 size_per_write=20000;
 write_buffer="";
 outdir=$(readlink -f $2)
@@ -79,17 +79,36 @@ do
 		# read in the content
 		plain_content=$(cat header $name footer);
 
+                # remove lines starting with |
+               	plain_content=$(sed '/^|/d' <<< "$plain_content");
+                plain_content=$(sed '/^!/d' <<< "$plain_content");
+
+
+		#
+		# After this, the entire content will be treated as a single line.
+		# This happense because our input to sed is not quoted, which lets
+		# us regex for multi-line patterns
+		# Above, we used "$plain_content" to only filter out single lines
+		# prefixed by |
+		#
+
 		# remove template links
-		plain_content=$(sed -r -e 's|<a [^>]*>Template:[^>]*</a>||g' <<< $plain_content);
+		if [[ $plain_content == *">Template"* ]]; then
+			plain_content=$(sed -r -e 's|<a [^>]*>Template:[^>]*</a>||g' <<< $plain_content);
+		fi
 
 		# remove <ref> tags
-		plain_content=$(sed -r -e 's|&lt;ref[^&]*&gt;[^&]*&lt;/ref&gt;||g' <<< $plain_content);
+		if [[ $plain_content == *";ref"* ]]; then
+			plain_content=$(sed -r -e 's|&lt;ref[^&]*&gt;[^&]*&lt;/ref&gt;||g' <<< $plain_content);
+		fi
 
                 # remove <math> tags
-                plain_content=$(sed -r -e 's|&lt;math&gt;([^&]\|&[^l]\|&l[^t]\|&lt[^;]\|&lt;[^/])*&lt;/math&gt;||g' <<< $plain_content);
+		if [[ $plain_content == *";math"* ]]; then
+                	plain_content=$(sed -r -e 's|&lt;math&gt;([^&]\|&[^l]\|&l[^t]\|&lt[^;]\|&lt;[^/])*&lt;/math&gt;|MATHFORMULA|g' <<< $plain_content);
+		fi
 
 		# get only the content of <p> tags
-		plain_content=$(xmllint --xpath "//p//child::text()" --recover --nowarning - 2> /dev/null <<< $plain_content)
+		plain_content=$(xmllint --xpath "//p//child::text()" --recover --nowarning - 2> /dev/null <<< "$plain_content")
 
 		plain_content=$(recode html..utf8 <<< $plain_content)
 
@@ -100,27 +119,39 @@ do
 		fi
 
                 # remove <math></math> tags
-		plain_content=$(perl -0777 -p -e 's/<math([^>]*)>((?!<\/math>)(\S|\s))*<\/math>/MATHFORMULA/g' <<< $plain_content);
+		if [[ $plain_content == *"<math"* ]]; then
+			plain_content=$(perl -0777 -p -e 's/<math([^>]*)>((?!<\/math>)(\S|\s))*<\/math>/MATHFORMULA/g' <<< $plain_content);
+		fi
 
 		# remove <ref /> tags
-		plain_content=$(sed -r -e 's|<ref([^>]*)/>||g' <<< $plain_content);
-		plain_content=$(sed -r -e 's|<ref[^>]*>| |g' <<< $plain_content);
-		plain_content=$(sed -r -e 's|</ref>| |g' <<< $plain_content);
+		if [[ $plain_content == *"<ref"* ]]; then
+			plain_content=$(sed -r -e 's|<ref([^>]*)/>||g' <<< $plain_content);
+			plain_content=$(sed -r -e 's|<ref[^>]*>| |g' <<< $plain_content);
+                        plain_content=$(sed -r -e 's|</ref>| |g' <<< $plain_content);
+		fi
+		if [[ $plain_content == *"</ref"* ]]; then
+			plain_content=$(sed -r -e 's|</ref>| |g' <<< $plain_content);
+		fi
 
                 # remove <timeline> tags
-                plain_content=$(perl -0777 -p -e 's/<timeline([^>]*)>((?!<\/timeline>)(\S|\s))*<\/timeline>//g' <<< $plain_content);
+		if [[ $plain_content == *"<timeline"* ]]; then
+                	plain_content=$(perl -0777 -p -e 's/<timeline([^>]*)>((?!<\/timeline>)(\S|\s))*<\/timeline>//g' <<< $plain_content);
+		fi
 
 		# replace " (; " with " ( "
 		# same with " (, "
-                plain_content=$(sed -r -e 's| \(; | (|g' <<< $plain_content);
-                plain_content=$(sed -r -e 's| \(, | (|g' <<< $plain_content);
+		if [[ $plain_content == *"(;"* ]]; then
+                	plain_content=$(sed -r -e 's| \(; | (|g' <<< $plain_content);
+		fi
+		if [[ $plain_content == *"(,"* ]]; then
+                        plain_content=$(sed -r -e 's| \(, | (|g' <<< $plain_content);
+		fi
 
 		# remove " ()" which is leftover from the removed template links above
 		# and trim leading/trailing whitespace
-		plain_content=$(sed -r -e 's|\s\(\)||g' <<< $plain_content);
-
-		# remove lines starting with |
-		plain_content=$(sed '/^|/ d' <<< $plain_content);
+		if [[ $plain_content == *"()"* ]]; then
+			plain_content=$(sed -r -e 's|\s\(\)||g' <<< $plain_content);
+		fi
 
 		### Trim leading whitespaces ###
 		plain_content="${plain_content##*( )}"
