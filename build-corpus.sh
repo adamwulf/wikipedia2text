@@ -215,9 +215,6 @@ do
 		plain_content="${plain_content%%*( )}"
 
 
-		echo "$plain_content"
-exit
-
         	echo $plain_content > $plainfilename;
 	fi
 
