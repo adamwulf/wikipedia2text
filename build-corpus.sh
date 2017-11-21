@@ -100,9 +100,13 @@ do
 		fi
 
 
+
+
 		# remove <ref> tags
 		if [[ $plain_content == *";ref"* ]]; then
-                        plain_content=$(perl -0777 -p -e 's|&lt;ref&gt;([^&]\|&[^l]\|&l[^t]\|&lt[^;]\|&lt;[^/])*&lt;/ref&gt;||ig' <<< "$plain_content");
+                        plain_content=$(perl -0777 -p -e 's|&lt;references((?!&lt;/references&gt;)(\S\|\s))*&lt;/references&gt;||ig' <<< "$plain_content");
+                        plain_content=$(perl -0777 -p -e 's|&lt;ref((?!&gt;)(\S\|\s))*/&gt;||ig' <<< "$plain_content");
+                        plain_content=$(perl -0777 -p -e 's|&lt;ref([^&]\|&[^l]\|&l[^t]\|&lt[^;]\|&lt;[^/])*&lt;/ref&gt;||ig' <<< "$plain_content");
 		fi
 
                 # remove <math> tags
@@ -128,10 +132,11 @@ do
                 plain_content=$(perl -0777 -p -e 's/<h4([^>]*)>((?!<\/h4>)(\S|\s))*<\/h4>//ig' <<< "$plain_content");
                 plain_content=$(perl -0777 -p -e 's/<h5([^>]*)>((?!<\/h5>)(\S|\s))*<\/h5>//ig' <<< "$plain_content");
 
+
+
 		# get only the content of <p> tags
 		plain_content=$(xmllint --xpath "//p//child::text()" --recover --nowarning - 2> /dev/null <<< "$plain_content")
 		plain_content=$(recode html..utf8 <<< "$plain_content")
-
 
 		if [[ $plain_content = *"&"* ]]; then
 			# convert html entities, if any
@@ -156,9 +161,12 @@ do
                 # remove lines only of codeblocks
                 plain_content=$(sed '/^MATHFORMULA$/d' <<< "$plain_content");
 
+                # remove <poem> tags
+                if [[ $plain_content == *"<poem"* ]]; then
+                        plain_content=$(perl -0777 -p -e 's/<poem([^>]*)>((?!<\/poem>)(\S|\s))*<\/poem>//ig' <<< "$plain_content");
+                fi
 
-		# remove <ref /> tags
-		if [[ $plain_content == *"<ref"* ]]; then
+                if [[ $plain_content == *"<ref"* ]]; then
 			plain_content=$(sed -r -e 's|<ref([^>]*)/>||g' <<< "$plain_content");
                         plain_content=$(perl -0777 -p -e 's/<ref([^>]*)>((?!<\/ref>)(\S|\s))*<\/ref>//ig' <<< "$plain_content");
 		fi
@@ -191,6 +199,9 @@ do
                 # remove URLs
                 plain_content=$(perl -0777 -p -e 's/([a-zA-Z]+:\/\/){0,1}[-a-zA-Z0-9@:%._\+~#=]{2,256}\.[a-z]{2,6}\b([-a-zA-Z0-9@:%_\+.~#?&\/\/=]*)/LINKURL/g' <<< "$plain_content");
 
+                # remove any closing tags
+                plain_content=$(perl -0777 -p -e 's/<\/[a-zA-Z0-9]*>//ig' <<< "$plain_content");
+
 
 		### Remove empty lines
                 plain_content=$(sed '/^$/d' <<< "$plain_content");
@@ -203,6 +214,9 @@ do
 		### trim trailing whitespaces  ##
 		plain_content="${plain_content%%*( )}"
 
+
+		echo "$plain_content"
+exit
 
         	echo $plain_content > $plainfilename;
 	fi

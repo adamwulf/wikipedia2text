@@ -1,5 +1,9 @@
 rm samples/progress.log
 rm samples/out-0.txt
+rm ../../data/wikipedia-articles/af/47/Prince_Max_Emanuel_of_Thurn_and_Taxis.plain.txt
+rm ../../data/wikipedia-articles/af/a0/Nothing_but_the_Truth_%28Son_Seals_album%29.plain.txt
+rm ../../data/wikipedia-articles/e1/e0/Statue_of_John_Bunyan%2C_Bedford.plain.txt
+rm ../../data/wikipedia-articles/e1/cc/Ultra-high-energy_cosmic_ray.plain.txt
 rm ../../data/wikipedia-articles/af/95/Kepler-56.plain.txt
 rm ../../data/wikipedia-articles/af/62/Annie_Mack.plain.txt
 rm ../../data/wikipedia-articles/af/45/Trans_%28film%29.plain.txt
