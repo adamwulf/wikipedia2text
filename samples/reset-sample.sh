@@ -1,5 +1,11 @@
 rm samples/progress.log
 rm samples/out-0.txt
+rm ../../data/wikipedia-articles/86/b7/Loon%2C_Bohol.plain.txt
+rm ../../data/wikipedia-articles/7b/0e/Lemnos.plain.txt
+rm ../../data/wikipedia-articles/e1/65/Lev_Russov.plain.txt
+rm ../../data/wikipedia-articles/af/62/Japanese_submarine_Ro-45.plain.txt
+rm ../../data/wikipedia-articles/3d/aa/Torpedo_boat.plain.txt
+rm ../../data/wikipedia-articles/af/33/South_African_type_MS_tender.plain.txt
 rm ../../data/wikipedia-articles/af/47/Prince_Max_Emanuel_of_Thurn_and_Taxis.plain.txt
 rm ../../data/wikipedia-articles/af/a0/Nothing_but_the_Truth_%28Son_Seals_album%29.plain.txt
 rm ../../data/wikipedia-articles/e1/e0/Statue_of_John_Bunyan%2C_Bedford.plain.txt

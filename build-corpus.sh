@@ -8,7 +8,7 @@ fi
 n=0;
 size_so_far=0;
 size_per_file=2073741824;
-size_per_write=20000;
+size_per_write=5000;
 write_buffer="";
 outdir=$(readlink -f $2)
 
@@ -68,7 +68,8 @@ do
      n=$(($n + 1));
    fi
 
-   if [[ $name != *"/Wikipedia"* && $name != *"Template%3A"* && $name != *"Module%3A"* && $name != *"jpg.xml" && $name != *"jpeg.xml" && $name != *"png.xml" ]]; then
+
+   if [[ $name != *"/Wikipedia"* && $name != *"File%3A"* && $name != *"Category%3A"* && $name != *"MediaWiki%3A"* && $name != *"Template%3A"* && $name != *"Module%3A"* && $name != *"jpg.xml" && $name != *"jpeg.xml" && $name != *"png.xml" ]]; then
 
 	plain_content="";
         plainfilename="${name%.*}.plain.txt"
@@ -78,7 +79,6 @@ do
 	else
 		# read in the content
 		plain_content=$(cat header $name footer);
-
 
                 # remove lines starting with |
                	plain_content=$(sed '/^|/d' <<< "$plain_content");
@@ -126,12 +126,21 @@ do
                 fi
 
 
-                plain_content=$(perl -0777 -p -e 's/<h1([^>]*)>((?!<\/h1>)(\S|\s))*<\/h1>//ig' <<< "$plain_content");
-                plain_content=$(perl -0777 -p -e 's/<h2([^>]*)>((?!<\/h2>)(\S|\s))*<\/h2>//ig' <<< "$plain_content");
-                plain_content=$(perl -0777 -p -e 's/<h3([^>]*)>((?!<\/h3>)(\S|\s))*<\/h3>//ig' <<< "$plain_content");
-                plain_content=$(perl -0777 -p -e 's/<h4([^>]*)>((?!<\/h4>)(\S|\s))*<\/h4>//ig' <<< "$plain_content");
-                plain_content=$(perl -0777 -p -e 's/<h5([^>]*)>((?!<\/h5>)(\S|\s))*<\/h5>//ig' <<< "$plain_content");
-
+                if [[ $plain_content == *"<h1"* ]]; then
+                	plain_content=$(perl -0777 -p -e 's/<h1([^>]*)>((?!<\/h1>)(\S|\s))*<\/h1>//ig' <<< "$plain_content");
+		fi
+                if [[ $plain_content == *"<h2"* ]]; then
+                	plain_content=$(perl -0777 -p -e 's/<h2([^>]*)>((?!<\/h2>)(\S|\s))*<\/h2>//ig' <<< "$plain_content");
+                fi
+                if [[ $plain_content == *"<h3"* ]]; then
+                	plain_content=$(perl -0777 -p -e 's/<h3([^>]*)>((?!<\/h3>)(\S|\s))*<\/h3>//ig' <<< "$plain_content");
+                fi
+                if [[ $plain_content == *"<h4"* ]]; then
+        	        plain_content=$(perl -0777 -p -e 's/<h4([^>]*)>((?!<\/h4>)(\S|\s))*<\/h4>//ig' <<< "$plain_content");
+                fi
+                if [[ $plain_content == *"<h5"* ]]; then
+	                plain_content=$(perl -0777 -p -e 's/<h5([^>]*)>((?!<\/h5>)(\S|\s))*<\/h5>//ig' <<< "$plain_content");
+                fi
 
 
 		# get only the content of <p> tags
@@ -144,6 +153,16 @@ do
 			plain_content=$(echo "$plain_content" | php -r 'echo html_entity_decode(file_get_contents("php://stdin"), ENT_QUOTES|ENT_HTML401);' 2> /dev/null)
 		fi
 
+		# remove [[[:anything]]] wiki links
+                plain_content=$(sed -r -e "s/\[\[\[:([^]]*)\]\]\]//g" <<< "$plain_content");
+                plain_content=$(sed -r -e "s/\[\[\[([^]]*)\]\]\]/\1/g" <<< "$plain_content");
+
+                # fix [[:|text]] style wiki links
+                plain_content=$(sed -r -e "s/\[\[:\|([^]]*)\]\]/\1/g" <<< "$plain_content");
+
+		# fix [[Link text|page url]] style wiki links
+                plain_content=$(sed -r -e "s/\[\[([^]\|]*)\|([^]]*)\]\]/\1/g" <<< "$plain_content");
+                plain_content=$(sed -r -e "s/\[\{([^]\|]*)\|([^]]*)\]\]/\1/g" <<< "$plain_content");
 
 		# remove <syntaxhighlight></syntaxhighlight> tags
                 if [[ $plain_content == *"<syntaxhighlight"* ]]; then
@@ -201,6 +220,16 @@ do
 
                 # remove any closing tags
                 plain_content=$(perl -0777 -p -e 's/<\/[a-zA-Z0-9]*>//ig' <<< "$plain_content");
+
+                if [[ $plain_content == *"<td"* ]]; then
+	                plain_content=$(sed '/^<td/d' <<< "$plain_content");
+                fi
+                if [[ $plain_content == *"<ref"* ]]; then
+                        plain_content=$(sed '/^<ref/d' <<< "$plain_content");
+                fi
+                if [[ $plain_content == *"<poem"* ]]; then
+                        plain_content=$(sed '/^<poem/d' <<< "$plain_content");
+                fi
 
 
 		### Remove empty lines
