@@ -1,3 +1,5 @@
+../../data/wikipedia-articles/e1/33/John_Boreham.xml
+../../data/wikipedia-articles/18/03/Archdeacon_of_Cornwall.xml
 ../../data/wikipedia-articles/86/b7/Loon%2C_Bohol.xml
 ../../data/wikipedia-articles/7b/0e/Lemnos.xml
 ../../data/wikipedia-articles/e1/65/Lev_Russov.xml

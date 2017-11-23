@@ -1,5 +1,7 @@
 rm samples/progress.log
 rm samples/out-0.txt
+rm ../../data/wikipedia-articles/e1/33/John_Boreham.plain.txt
+rm ../../data/wikipedia-articles/18/03/Archdeacon_of_Cornwall.plain.txt
 rm ../../data/wikipedia-articles/86/b7/Loon%2C_Bohol.plain.txt
 rm ../../data/wikipedia-articles/7b/0e/Lemnos.plain.txt
 rm ../../data/wikipedia-articles/e1/65/Lev_Russov.plain.txt

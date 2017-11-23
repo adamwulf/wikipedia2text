@@ -80,6 +80,12 @@ do
 		# read in the content
 		plain_content=$(cat header $name footer);
 
+
+
+
+                echo "$plain_content"
+                exit
+
                 # remove lines starting with |
                	plain_content=$(sed '/^|/d' <<< "$plain_content");
                 plain_content=$(sed '/^!/d' <<< "$plain_content");
@@ -152,6 +158,13 @@ do
 	#               plain_content=$(echo "$plain_content" | perl -MHTML::Entities -pe 'decode_entities($_);' 2> /dev/null)
 			plain_content=$(echo "$plain_content" | php -r 'echo html_entity_decode(file_get_contents("php://stdin"), ENT_QUOTES|ENT_HTML401);' 2> /dev/null)
 		fi
+
+
+
+		echo "$plain_content"
+		exit
+
+
 
 		# remove [[[:anything]]] wiki links
                 plain_content=$(sed -r -e "s/\[\[\[:([^]]*)\]\]\]//g" <<< "$plain_content");
@@ -244,7 +257,7 @@ do
 		plain_content="${plain_content%%*( )}"
 
 
-        	echo $plain_content > $plainfilename;
+        	echo "$plain_content" > $plainfilename;
 	fi
 
         size_to_append=${#plain_content};
