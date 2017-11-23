@@ -69,7 +69,7 @@ do
    fi
 
 
-   if [[ $name != *"/Wikipedia"* && $name != *"File%3A"* && $name != *"Category%3A"* && $name != *"MediaWiki%3A"* && $name != *"Template%3A"* && $name != *"Module%3A"* && $name != *"jpg.xml" && $name != *"jpeg.xml" && $name != *"png.xml" ]]; then
+   if [[ $name != *"/Wikipedia"* && name != *"Help%3A"* && name != *"Portal%3A"* && $name != *"File%3A"* && $name != *"Category%3A"* && $name != *"MediaWiki%3A"* && $name != *"Template%3A"* && $name != *"Module%3A"* && $name != *"jpg.xml" && $name != *"jpeg.xml" && $name != *"png.xml" ]]; then
 
 	plain_content="";
         plainfilename="${name%.*}.plain.txt"
