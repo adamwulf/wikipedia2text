@@ -1,1 +1,0 @@
-Change this filename to stop.command to have the build_corpus.sh stop running between files. This way, the process can be restarted after rebooting the ec2 instance, which resets the ec2 and ebs throttles.
