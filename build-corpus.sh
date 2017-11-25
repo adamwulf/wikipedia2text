@@ -8,7 +8,7 @@ fi
 n=0;
 size_so_far=0;
 size_per_file=2073741824;
-size_per_write=5000;
+size_per_write=50000;
 write_buffer="";
 outdir=$(readlink -f $2)
 
@@ -80,7 +80,6 @@ do
 		# read in the content
 		plain_content=$(cat header $name footer);
 
-
                 # remove lines starting with |
                	plain_content=$(sed '/^|/d' <<< "$plain_content");
                 plain_content=$(sed '/^!/d' <<< "$plain_content");
@@ -126,27 +125,31 @@ do
                         plain_content=$(perl -0777 -p -e 's/<th([^>]*)>((?!<\/th>)(\S|\s))*<\/th>//ig' <<< "$plain_content");
                 fi
 
-
-                if [[ $plain_content == *"<h1"* ]]; then
-                	plain_content=$(perl -0777 -p -e 's/<h1([^>]*)>((?!<\/h1>)(\S|\s))*<\/h1>//ig' <<< "$plain_content");
+                if [[ $plain_content == *"<h"* ]]; then
+                        plain_content=$(perl -0777 -p -e 's/<h([\d])([^>]*)>((?!<\/h\1>)(\S|\s))*<\/h\1>//ig' <<< "$plain_content");
 		fi
-                if [[ $plain_content == *"<h2"* ]]; then
-                	plain_content=$(perl -0777 -p -e 's/<h2([^>]*)>((?!<\/h2>)(\S|\s))*<\/h2>//ig' <<< "$plain_content");
-                fi
-                if [[ $plain_content == *"<h3"* ]]; then
-                	plain_content=$(perl -0777 -p -e 's/<h3([^>]*)>((?!<\/h3>)(\S|\s))*<\/h3>//ig' <<< "$plain_content");
-                fi
-                if [[ $plain_content == *"<h4"* ]]; then
-        	        plain_content=$(perl -0777 -p -e 's/<h4([^>]*)>((?!<\/h4>)(\S|\s))*<\/h4>//ig' <<< "$plain_content");
-                fi
-                if [[ $plain_content == *"<h5"* ]]; then
-	                plain_content=$(perl -0777 -p -e 's/<h5([^>]*)>((?!<\/h5>)(\S|\s))*<\/h5>//ig' <<< "$plain_content");
-                fi
+
+		
+		# remove newlines and replace all </p> with </p>\n.
+		# this ensures that all paragraphs are on a single line
+		# in the next step
+                plain_content=$(perl -0777 -p -e 's|<br[^>]*>|====nl====|ig' <<< "$plain_content");
+                plain_content=$(perl -0777 -p -e 's|\n||ig' <<< "$plain_content");
+                plain_content=$(perl -0777 -p -e 's|</p>|\n</p>|ig' <<< "$plain_content");
+                plain_content=$(perl -0777 -p -e 's|====nl====|\n|ig' <<< "$plain_content");
 
 
+		#
+		#
 		# get only the content of <p> tags
 		plain_content=$(xmllint --xpath "//p//child::text()" --recover --nowarning - 2> /dev/null <<< "$plain_content")
 		plain_content=$(recode html..utf8 <<< "$plain_content")
+		#
+		#
+		#
+
+
+
 
 		if [[ $plain_content = *"&"* ]]; then
 			# convert html entities, if any
@@ -155,17 +158,22 @@ do
 		fi
 
 
+                if [[ $plain_content == *"[["* ]]; then
+			# remove [[[:anything]]] wiki links
+			if [[ $plain_content == *"[[[:"* ]]; then
+                		plain_content=$(sed -r -e "s/\[\[\[:([^]]*)\]\]\]//g" <<< "$plain_content");
+                		plain_content=$(sed -r -e "s/\[\[\[([^]]*)\]\]\]/\1/g" <<< "$plain_content");
+			fi
 
-		# remove [[[:anything]]] wiki links
-                plain_content=$(sed -r -e "s/\[\[\[:([^]]*)\]\]\]//g" <<< "$plain_content");
-                plain_content=$(sed -r -e "s/\[\[\[([^]]*)\]\]\]/\1/g" <<< "$plain_content");
+                	# fix [[:|text]] style wiki links
+			if [[ $plain_content == *"[[:"* ]]; then
+                		plain_content=$(sed -r -e "s/\[\[:\|([^]]*)\]\]/\1/g" <<< "$plain_content");
+			fi
 
-                # fix [[:|text]] style wiki links
-                plain_content=$(sed -r -e "s/\[\[:\|([^]]*)\]\]/\1/g" <<< "$plain_content");
-
-		# fix [[Link text|page url]] style wiki links
-                plain_content=$(sed -r -e "s/\[\[([^]\|]*)\|([^]]*)\]\]/\1/g" <<< "$plain_content");
-                plain_content=$(sed -r -e "s/\[\{([^]\|]*)\|([^]]*)\]\]/\1/g" <<< "$plain_content");
+			# fix [[Link text|page url]] style wiki links
+               		plain_content=$(sed -r -e "s/\[\[([^]\|]*)\|([^]]*)\]\]/\1/g" <<< "$plain_content");
+               		plain_content=$(sed -r -e "s/\[\{([^]\|]*)\|([^]]*)\]\]/\1/g" <<< "$plain_content");
+		fi
 
 		# remove <syntaxhighlight></syntaxhighlight> tags
                 if [[ $plain_content == *"<syntaxhighlight"* ]]; then
@@ -173,7 +181,9 @@ do
                 fi
 
 		# remove lines only of codeblocks
-                plain_content=$(sed '/^CODEBLOCK$/d' <<< "$plain_content");
+                if [[ $plain_content == *"CODEBLOCK"* ]]; then
+	                plain_content=$(sed '/^CODEBLOCK$/d' <<< "$plain_content");
+		fi
 
                 # remove <math></math> tags
 		if [[ $plain_content == *"<math"* ]]; then
@@ -181,7 +191,9 @@ do
 		fi
 
                 # remove lines only of codeblocks
-                plain_content=$(sed '/^MATHFORMULA$/d' <<< "$plain_content");
+                if [[ $plain_content == *"MATHFORMULA"* ]]; then
+	                plain_content=$(sed '/^MATHFORMULA$/d' <<< "$plain_content");
+		fi
 
                 # remove <poem> tags
                 if [[ $plain_content == *"<poem"* ]]; then
