@@ -1,5 +1,28 @@
 rm samples/progress.log
 rm samples/out-0.txt
+rm samples/files.appended.txt
+rm samples/files.skipped.txt
+
+
+
+rm ../../data/wikipedia-articles/22/54/Drum_line_%28shark_control%29.plain.txt
+rm ../../data/wikipedia-articles/9a/90/Kamenica_nad_Cirochou.plain.txt
+rm ../../data/wikipedia-articles/d5/24/Darzamat.plain.txt
+rm ../../data/wikipedia-articles/99/db/2015%E2%80%9316_Liga_MX_season.plain.txt
+rm ../../data/wikipedia-articles/2b/22/2017_FIBA_Europe_Under-18_Championship.plain.txt
+rm ../../data/wikipedia-articles/00/4a/Prince_Charles_Mountains.plain.txt
+rm ../../data/wikipedia-articles/bb/42/Wilhelm_D%C3%B6rr.plain.txt
+rm ../../data/wikipedia-articles/57/54/1941_German_football_championship.plain.txt
+rm ../../data/wikipedia-articles/5e/65/CFM_International_LEAP.plain.txt
+rm ../../data/wikipedia-articles/5e/07/Gilman_reagent.plain.txt
+rm ../../data/wikipedia-articles/c6/17/Proactive_cyber_defence.plain.txt
+rm ../../data/wikipedia-articles/61/2f/Navier%E2%80%93Stokes_equations.plain.txt
+rm ../../data/wikipedia-articles/e1/39/2016%E2%80%9317_Euroleague_Basketball_Next_Generation_Tournament.plain.txt
+
+rm ../../data/wikipedia-articles/bf/48/Canadian_Action_Party_candidates%2C_2000_Canadian_federal_election.plain.txt
+rm ../../data/wikipedia-articles/aa/80/Ubay%2C_Bohol.plain.txt
+rm ../../data/wikipedia-articles/fe/6f/J._J._Goodwin.plain.txt
+rm ../../data/wikipedia-articles/d7/58/Mutator_method.plain.txt
 rm ../../data/wikipedia-articles/e2/c9/Carbanak.plain.txt
 rm ../../data/wikipedia-articles/52/77/Salvador_Zerboni.plain.txt
 rm ../../data/wikipedia-articles/e1/33/John_Boreham.plain.txt

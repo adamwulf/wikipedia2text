@@ -19,6 +19,10 @@ current_percent_done=0;
 log_file=$outdir"/progress.log"
 last_line_file=$outdir"/stopped.line"
 last_n_file=$outdir"/stopped.n"
+skipped_files=$outdir"/files.skipped.txt"
+appended_files=$outdir"/files.appended.txt"
+
+
 
 skip_until=0
 
@@ -69,10 +73,12 @@ do
    fi
 
 
-   if [[ $name != *"/Wikipedia"* && name != *"Help%3A"* && name != *"Portal%3A"* && $name != *"File%3A"* && $name != *"Category%3A"* && $name != *"MediaWiki%3A"* && $name != *"Template%3A"* && $name != *"Module%3A"* && $name != *"jpg.xml" && $name != *"jpeg.xml" && $name != *"png.xml" ]]; then
+   if [[ $name != *"/Wikipedia"* && $name != *"%3A"* && name != *":"* && $name != *"jpg.xml" && $name != *"jpeg.xml" && $name != *"png.xml" ]]; then
 
 	plain_content="";
         plainfilename="${name%.*}.plain.txt"
+
+        echo "$name" >> $appended_files;
 
 	if [ -f $plainfilename ]; then
 		plain_content=$(cat $plainfilename);
@@ -80,11 +86,14 @@ do
 		# read in the content
 		plain_content=$(cat header $name footer);
 
+
                 # remove lines starting with |
                	plain_content=$(sed '/^|/d' <<< "$plain_content");
                 plain_content=$(sed '/^!/d' <<< "$plain_content");
                 plain_content=$(sed '/^{|/d' <<< "$plain_content");
                 plain_content=$(sed '/^<p>|/d' <<< "$plain_content");
+                plain_content=$(sed '/^.*\\[a-zA-Z]*/d' <<< "$plain_content");
+
 
 		#
 		# After this, the entire content will be treated as a single line.
@@ -101,7 +110,6 @@ do
 
 
 
-
 		# remove <ref> tags
 		if [[ $plain_content == *";ref"* ]]; then
                         plain_content=$(perl -0777 -p -e 's|&lt;references((?!&lt;/references&gt;)(\S\|\s))*&lt;/references&gt;||ig' <<< "$plain_content");
@@ -109,20 +117,31 @@ do
                         plain_content=$(perl -0777 -p -e 's|&lt;ref([^&]\|&[^l]\|&l[^t]\|&lt[^;]\|&lt;[^/])*&lt;/ref&gt;||ig' <<< "$plain_content");
 		fi
 
+
                 # remove <math> tags
 		if [[ $plain_content == *";math"* ]]; then
                         plain_content=$(perl -0777 -p -e 's|&lt;math&gt;([^&]\|&[^l]\|&l[^t]\|&lt[^;]\|&lt;[^/])*&lt;/math&gt;|MATHFORMULA|ig' <<< "$plain_content");
 		fi
 
+                # remove <graph> tags
+                if [[ $plain_content == *";graph"* ]]; then
+                        plain_content=$(perl -0777 -p -e 's|&lt;graph&gt;([^&]\|&[^l]\|&l[^t]\|&lt[^;]\|&lt;[^/])*&lt;/graph&gt;|\n|ig' <<< "$plain_content");
+                fi
+
+                # remove <timeline> tags
+                if [[ $plain_content == *";timeline"* ]]; then
+                        plain_content=$(perl -0777 -p -e 's|&lt;timeline&gt;([^&]\|&[^l]\|&l[^t]\|&lt[^;]\|&lt;[^/])*&lt;/timeline&gt;|\n|ig' <<< "$plain_content");
+                fi
+
                 # remove <syntaxhighlight></syntaxhighlight> tags
                 if [[ $plain_content == *"&lt;syntaxhighlight"* ]]; then
-                        plain_content=$(perl -0777 -p -e 's/&lt;syntaxhighlight((?!&gt;)(\S|\s))*&gt;((?!&lt;\/syntaxhighlight&gt;)(\S|\s))*&lt;\/syntaxhighlight&gt;/CODEBLOCK/ig' <<< "$plain_content");
+                        plain_content=$(perl -0777 -p -e 's/&lt;syntaxhighlight((?!&gt;)(\S|\s))*&gt;((?!&lt;\/syntaxhighlight&gt;)(\S|\s))*&lt;\/syntaxhighlight&gt;//ig' <<< "$plain_content");
                 fi
 
                 # remove <td></td> and <th></th> tags
                 if [[ $plain_content == *"<td"* ]]; then
-                        plain_content=$(perl -0777 -p -e 's/<td([^>]*)>((?!<\/td>)(\S|\s))*<\/td>//ig' <<< "$plain_content");
-                        plain_content=$(perl -0777 -p -e 's/<th([^>]*)>((?!<\/th>)(\S|\s))*<\/th>//ig' <<< "$plain_content");
+                        plain_content=$(perl -0777 -p -e 's/<td([^>]*)>((?!<\/td>)(\S|\s))*<\/td>/\n/ig' <<< "$plain_content");
+                        plain_content=$(perl -0777 -p -e 's/<th([^>]*)>((?!<\/th>)(\S|\s))*<\/th>/\n/ig' <<< "$plain_content");
                 fi
 
                 if [[ $plain_content == *"<h"* ]]; then
@@ -138,17 +157,47 @@ do
                 plain_content=$(perl -0777 -p -e 's|</p>|\n</p>|ig' <<< "$plain_content");
                 plain_content=$(perl -0777 -p -e 's|====nl====|\n|ig' <<< "$plain_content");
 
+                # remove <math> tags
+                if [[ $plain_content == *";poem"* ]]; then
+                        plain_content=$(perl -0777 -p -e 's|&lt;poem&gt;(\s\|\S)*?&lt;/poem&gt;|\n|ig' <<< "$plain_content");
+                fi
+
+		# replace ndash with a normal dash
+                # plain_content=$(sed -r -e "s/–/-/g" <<< "$plain_content");
+
+
+
+
+
+
+
+
+
+
 
 		#
 		#
 		# get only the content of <p> tags
-		plain_content=$(xmllint --xpath "//p//child::text()" --recover --nowarning - 2> /dev/null <<< "$plain_content")
+                plain_content=$(recode -d ..html <<< "$plain_content")
+		plain_content=$(xmllint --html --xpath "//p//child::text()" --recover --nowarning - 2> /dev/null <<< "$plain_content")
 		plain_content=$(recode html..utf8 <<< "$plain_content")
 		#
 		#
 		#
 
 
+
+
+
+
+                # remove <td></td> and <th></th> tags
+                if [[ $plain_content == *"<td"* ]]; then
+                        plain_content=$(perl -0777 -p -e 's/<td([^>]*)>(\S|\s)*<\/td>/\n/ig' <<< "$plain_content");
+                        plain_content=$(perl -0777 -p -e 's/<th([^>]*)>(\S|\s)*<\/th>/\n/ig' <<< "$plain_content");
+
+                        plain_content=$(perl -0777 -p -e 's/<td([^>]*)>/ /ig' <<< "$plain_content");
+                        plain_content=$(perl -0777 -p -e 's/<th([^>]*)>/ /ig' <<< "$plain_content");
+                fi
 
 
 		if [[ $plain_content = *"&"* ]]; then
@@ -165,29 +214,40 @@ do
                 		plain_content=$(sed -r -e "s/\[\[\[([^]]*)\]\]\]/\1/g" <<< "$plain_content");
 			fi
 
+
                 	# fix [[:|text]] style wiki links
 			if [[ $plain_content == *"[[:"* ]]; then
                 		plain_content=$(sed -r -e "s/\[\[:\|([^]]*)\]\]/\1/g" <<< "$plain_content");
 			fi
 
+
 			# fix [[Link text|page url]] style wiki links
-               		plain_content=$(sed -r -e "s/\[\[([^]\|]*)\|([^]]*)\]\]/\1/g" <<< "$plain_content");
-               		plain_content=$(sed -r -e "s/\[\{([^]\|]*)\|([^]]*)\]\]/\1/g" <<< "$plain_content");
+               		plain_content=$(sed -r -e 's/\[\[([^]|]*?)\|([^]]*)\]\]/\1/g' <<< "$plain_content");
+                #        plain_content=$(sed -r -e 's/\[\[([^]]*?)\]\]/\1/g' <<< "$plain_content");
 		fi
+
+
+		# remove {{#invoke:Portal ... }} and similar tags
+                if [[ $plain_content == *"{{#"* ]]; then
+                        plain_content=$(perl -0777 -p -e 's/\{{#[^}]*}}//ig' <<< "$plain_content");
+		fi
+
+
+
+                # remove <source></source> tags
+                if [[ $plain_content == *"<source"* ]]; then
+                        plain_content=$(perl -0777 -p -e 's/<source([^>]*)>(\S|\s)*?<\/source>//ig' <<< "$plain_content");
+                fi
+
 
 		# remove <syntaxhighlight></syntaxhighlight> tags
                 if [[ $plain_content == *"<syntaxhighlight"* ]]; then
-                        plain_content=$(perl -0777 -p -e 's/<syntaxhighlight([^>]*)>((?!<\/syntaxhighlight>)(\S|\s))*<\/syntaxhighlight>/CODEBLOCK/ig' <<< "$plain_content");
+                        plain_content=$(perl -0777 -p -e 's/<syntaxhighlight([^>]*)>(\S|\s)*?<\/syntaxhighlight>//ig' <<< "$plain_content");
                 fi
-
-		# remove lines only of codeblocks
-                if [[ $plain_content == *"CODEBLOCK"* ]]; then
-	                plain_content=$(sed '/^CODEBLOCK$/d' <<< "$plain_content");
-		fi
 
                 # remove <math></math> tags
 		if [[ $plain_content == *"<math"* ]]; then
-			plain_content=$(perl -0777 -p -e 's/<math([^>]*)>((?!<\/math>)(\S|\s))*<\/math>/MATHFORMULA/ig' <<< "$plain_content");
+			plain_content=$(perl -0777 -p -e 's/<math([^>]*)>(\S|\s)*?<\/math>/MATHFORMULA/ig' <<< "$plain_content");
 		fi
 
                 # remove lines only of codeblocks
@@ -197,17 +257,17 @@ do
 
                 # remove <poem> tags
                 if [[ $plain_content == *"<poem"* ]]; then
-                        plain_content=$(perl -0777 -p -e 's/<poem([^>]*)>((?!<\/poem>)(\S|\s))*<\/poem>//ig' <<< "$plain_content");
+                        plain_content=$(perl -0777 -p -e 's/<poem([^>]*)>(\S|\s)*?<\/poem>//ig' <<< "$plain_content");
                 fi
 
                 if [[ $plain_content == *"<ref"* ]]; then
 			plain_content=$(sed -r -e 's|<ref([^>]*)/>||g' <<< "$plain_content");
-                        plain_content=$(perl -0777 -p -e 's/<ref([^>]*)>((?!<\/ref>)(\S|\s))*<\/ref>//ig' <<< "$plain_content");
+                        plain_content=$(perl -0777 -p -e 's/<ref([^>]*)>(\S|\s)*?<\/ref>//ig' <<< "$plain_content");
 		fi
 
                 # remove <timeline> tags
 		if [[ $plain_content == *"<timeline"* ]]; then
-                	plain_content=$(perl -0777 -p -e 's/<timeline([^>]*)>((?!<\/timeline>)(\S|\s))*<\/timeline>//ig' <<< "$plain_content");
+                	plain_content=$(perl -0777 -p -e 's/<timeline([^>]*)>(\S|\s)*?<\/timeline>//ig' <<< "$plain_content");
 		fi
 
 		# replace " (; " with " ( "
@@ -246,6 +306,8 @@ do
                         plain_content=$(sed '/^<poem/d' <<< "$plain_content");
                 fi
 
+		# fix double comma
+                plain_content=$(sed -r -e 's/, ,/,/g' <<< "$plain_content");
 
 		### Remove empty lines
                 plain_content=$(sed '/^$/d' <<< "$plain_content");
@@ -259,7 +321,16 @@ do
 		plain_content="${plain_content%%*( )}"
 
 
-        	echo "$plain_content" > $plainfilename;
+                if [[ $plain_content == *"|"* ]]; then
+                	plain_content=$(sed -r -e "s/\|[a-zA-Z0-9]*=[a-zA-Z0-9]*/ /g" <<< "$plain_content");
+	                plain_content=$(sed '/^|/d' <<< "$plain_content");
+        	        plain_content=$(sed '/^!/d' <<< "$plain_content");
+		fi
+
+
+                plain_content=$(sed '/^Last updated:/d' <<< "$plain_content");
+
+                echo "$plain_content" > $plainfilename;
 	fi
 
         size_to_append=${#plain_content};
@@ -296,6 +367,8 @@ do
                         write_buffer="";
 		fi
 	fi
+   else
+        echo "$name" >> $skipped_files;
    fi
 
 
